@@ -67,14 +67,14 @@ void CImageView::SetImage(HBITMAP hBitmap)
 	UpdateView();
 }
 
-void CImageView::SetImage(HBITMAP hBitmap, CARPLATE_DATA carData)
+void CImageView::SetImage(HBITMAP hBitmap, CARPLATEDATA carData)
 {
 	if (m_hBitmap != NULL)
 		DeleteObject(m_hBitmap);
 	m_hBitmap = hBitmap;
 	GetObject(hBitmap, sizeof(BITMAP), &m_bInfo);
-	memset(&m_LPRData, 0, sizeof(CARPLATE_DATA));
-	memcpy(&m_LPRData, &carData, sizeof(CARPLATE_DATA));
+	memset(&m_LPRData, 0, sizeof(CARPLATEDATA));
+	memcpy(&m_LPRData, &carData, sizeof(CARPLATEDATA));
 	UpdateView();
 }
 
@@ -146,7 +146,7 @@ void CImageView::DrawRectangle(CDC * pDC)
 		pOldFont = pDC->SelectObject(&font);
 		CString strObjTemp = CString(m_LPRData.pPlate[i].szLicense, strlen(m_LPRData.pPlate[i].szLicense));
 		CString temp;
-		temp.Format(_T("-[conf: %.2f"), m_LPRData.pPlate[i].nTrust);
+		temp.Format(_T("-[conf: %.2f"), m_LPRData.pPlate[i].fTrust);
 		strObjTemp += temp + _T("%]");
 		pDC->SetTextColor(RGB(20, 20, 200));
 		pDC->SetBkColor(RGB(200, 200, 20));

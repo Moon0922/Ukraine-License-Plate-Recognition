@@ -12,14 +12,14 @@ CVideoProcessor::CVideoProcessor(void)
 	m_nVideoFrameCount = 0;
 	m_dblVideoTotalTime = 0;
 	m_dblVideoCurrentTime = 0;
-	m_hEngineHandle = UALPR_EngineHandleCreate();
+	m_hEngineHandle = UALPREngineHandleCreate();
 	InitializeCriticalSection(&m_CS);
 }
 
 CVideoProcessor::~CVideoProcessor(void)
 {
 	StopThread();
-	UALPR_EngineHandleDestroy(m_hEngineHandle);
+	UALPREngineHandleDestroy(m_hEngineHandle);
 	DeleteCriticalSection(&m_CS);
 }
 
@@ -149,12 +149,9 @@ void CVideoProcessor::LPRPerFrame(cv::Mat& frame)
 	cv::Mat gray;
 	cvtColor(frame, gray, cv::COLOR_BGR2GRAY);
 
-	InitSet iniSet;
-	memset(&iniSet, 0, sizeof(InitSet));
-	iniSet.skewAng = 0;
-	CARPLATE_DATA	carData;
+	CARPLATEDATA	carData;
 	int pTime = (int)clock();
-	int nPlateNum = UALPR_EngineProcess(m_hEngineHandle, gray.data, gray.cols, gray.rows, &iniSet, &carData);
+	int nPlateNum = UALPREngineProcess(m_hEngineHandle, gray.data, gray.cols, gray.rows, &carData);
 	pTime = (int)clock() - pTime;
 
 	if (nPlateNum) {
@@ -167,7 +164,7 @@ void CVideoProcessor::LPRPerFrame(cv::Mat& frame)
 			int height = carData.pPlate[i].rtPlate.bottom + 10;
 			rectangle(frame, cv::Rect(left, top, width, height), cv::Scalar(0, 255, 255));
 			char szResult[100];
-			sprintf(szResult, "%s-[conf: %.2f]\%", carData.pPlate[i].szLicense, carData.pPlate[i].nTrust);
+			sprintf(szResult, "%s-[conf: %.2f]\%", carData.pPlate[i].szLicense, carData.pPlate[i].fTrust);
 			putText(frame, szResult, cv::Point(left, top), cv::FONT_HERSHEY_PLAIN, 1.0, cv::Scalar(0, 255, 255));
 		}
 	}

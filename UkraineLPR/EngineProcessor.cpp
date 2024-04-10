@@ -5,20 +5,19 @@
 #include "opencv2/opencv.hpp"
 #include <time.h>
 
-using namespace cv;
 CEngineProcessor::CEngineProcessor()
 {
 	m_hLPRThread = 0;
 	m_nProcStatus = PROC_NONE;
 	m_curFileIndex = -1;
-	m_hEngineHandle = UALPR_EngineHandleCreate();
+	m_hEngineHandle = UALPREngineHandleCreate();
 	InitializeCriticalSection(&m_CS);
 }
 
 CEngineProcessor::~CEngineProcessor()
 {
 	Stop();
-	UALPR_EngineHandleDestroy(m_hEngineHandle);
+	UALPREngineHandleDestroy(m_hEngineHandle);
 	DeleteCriticalSection(&m_CS);
 }
 
@@ -197,21 +196,18 @@ void CEngineProcessor::StillImage(int index)
 	CString strImgName = m_strImageDir + _T("\\") + m_vecImagePath.at(index);
 	char szImgPath[_MAX_PATH] = { 0 };
 	WideCharToMultiByte(CP_ACP, 0, strImgName.GetBuffer(), strImgName.GetLength(), szImgPath, _MAX_PATH, NULL, NULL);
-	Mat	mImage = imread(szImgPath);
+	cv::Mat	mImage = cv::imread(szImgPath);
 	int w = mImage.cols;
 	int h = mImage.rows;
 	xImage.Create(w, h, 24);
 	for (int y = 0; y < h; y++)
 		memcpy(xImage.GetBits(y), mImage.data + (h - 1 - y) * 3 * mImage.cols, 3 * mImage.cols);
-	Mat gray;
-	cvtColor(mImage, gray, COLOR_BGR2GRAY);
+	cv::Mat gray;
+	cvtColor(mImage, gray, cv::COLOR_BGR2GRAY);
 
-	InitSet iniSet;
-	memset(&iniSet, 0, sizeof(InitSet));
-	iniSet.skewAng = 0;
-	CARPLATE_DATA	carData;
+	CARPLATEDATA	carData;
 	int pTime = (int)clock();
-	int nPlateNum = UALPR_EngineProcess(m_hEngineHandle, gray.data, gray.cols, gray.rows, &iniSet, &carData);
+	int nPlateNum = UALPREngineProcess(m_hEngineHandle, gray.data, gray.cols, gray.rows, &carData);
 	pTime = (int)clock() - pTime;
 
 	CString temp;
@@ -222,7 +218,7 @@ void CEngineProcessor::StillImage(int index)
 	{
 		CString strConf;
 		CString lprResult = CString(carData.pPlate[0].szLicense, strlen(carData.pPlate[0].szLicense));
-		strConf.Format(_T("%.2f"), carData.pPlate[0].nTrust);
+		strConf.Format(_T("%.2f"), carData.pPlate[0].fTrust);
 		m_wndListCtrl->SetItemText(index, 4, strConf + _T("%"));
 		m_wndListCtrl->SetItemText(index, 2, lprResult);
 	}
